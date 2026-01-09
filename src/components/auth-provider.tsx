@@ -15,7 +15,7 @@ const MOCK_SALES_PEOPLE = ['sales1@example.com', 'sales2@example.com'];
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string) => void;
+  login: (email: string, password?: string) => void;
   logout: () => void;
 }
 
@@ -41,7 +41,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(
-    (email: string) => {
+    (email: string, password?: string) => {
+      // NOTE: Password is not currently used for mock login.
       let loggedInUser: User | null = null;
       const normalizedEmail = email.toLowerCase();
       

@@ -146,7 +146,8 @@
     font-size: 0.9rem;
 }
 
-.form-group input[type="email"] {
+.form-group input[type="email"],
+.form-group input[type="password"] {
     width: 100%;
     padding: 1rem;
     border: 2px solid #f3f4f6;
@@ -157,7 +158,8 @@
     color: var(--text-dark);
 }
 
-.form-group input[type="email"]:focus {
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus {
     outline: none;
     background-color: #fff;
     border-color: var(--primary-teal);

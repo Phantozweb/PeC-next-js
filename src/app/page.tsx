@@ -7,6 +7,7 @@ import './login.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const { login, user, loading } = useAuth();
   const router = useRouter();
 
@@ -18,7 +19,7 @@ export default function LoginPage() {
 
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
-    login(email);
+    login(email, password);
   };
 
   if (loading || user) {
@@ -57,7 +58,7 @@ export default function LoginPage() {
             <div className="divider"></div>
 
             <h1>Welcome Back!</h1>
-            <p className="subtitle">Enter your email to sign in to your account.</p>
+            <p className="subtitle">Enter your credentials to sign in to your account.</p>
 
             <form onSubmit={handleLogin}>
                 <div className="form-group">
@@ -69,6 +70,17 @@ export default function LoginPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+                <div className="form-group">
+                    <label htmlFor="password">Password</label>
+                    <input 
+                      type="password" 
+                      id="password" 
+                      placeholder="••••••••" 
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                     />
                 </div>
 
