@@ -1,19 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useState, FormEvent, useEffect } from 'react';
-import { Logo } from '@/components/logo';
+import './login.css';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -40,40 +30,52 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <Logo className="h-16 w-16" />
-          <h1 className="font-headline text-4xl font-bold text-primary">
-            Lensbox Feedback Hub
-          </h1>
+    <main className="login-page">
+      {/* Left Side: Visuals & Theme */}
+      <div className="visual-side">
+        {/* Abstract Shapes matching theme */}
+        <div className="circle c1"></div>
+        <div className="circle c2"></div>
+        
+        {/* Glass Card Decoration */}
+        <div className="glass-card-decor">
+            <h2>Visionary Insights.</h2>
+            <p>Welcome to the Lensbox Feedback Hub. Helping you see customer satisfaction clearly.</p>
         </div>
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="font-headline text-2xl">Welcome Back!</CardTitle>
-            <CardDescription>
-              Enter your email to sign in to your account.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Sign In
-              </Button>
+      </div>
+
+      {/* Right Side: Login Form */}
+      <div className="form-side">
+        <div className="login-container">
+            
+            {/* Logo area */}
+            <div className="logo-text">
+                <div className="logo-icon"></div>
+                LENSBOX
+            </div>
+
+            <div className="divider"></div>
+
+            <h1>Welcome Back!</h1>
+            <p className="subtitle">Enter your email to sign in to your account.</p>
+
+            <form onSubmit={handleLogin}>
+                <div className="form-group">
+                    <label htmlFor="email">Email Address</label>
+                    <input 
+                      type="email" 
+                      id="email" 
+                      placeholder="you@example.com" 
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                </div>
+
+                <button type="submit" className="btn-submit">Sign In</button>
             </form>
-          </CardContent>
-        </Card>
+
+        </div>
       </div>
     </main>
   );
