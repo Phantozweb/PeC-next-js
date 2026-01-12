@@ -1,25 +1,20 @@
-export type User = {
+export interface User {
   email: string;
   role: 'admin' | 'user';
-};
+}
 
-export type Feedback = {
+export interface Feedback {
   id: string;
   sNo: number;
   deliveryDate: Date;
   customerName: string;
   phone: string;
   calledBy: string;
-  salesmanComment: string;
-};
+  comments: string;
+  status: 'Pending' | 'Completed' | 'Follow-up';
+}
 
-export type Employee = {
+export interface Employee {
   id: string;
   name: string;
-};
-
-export type AppSettings = {
-    logoUrl: string;
-    whatsappTemplate: string;
-    employees: Employee[];
 }

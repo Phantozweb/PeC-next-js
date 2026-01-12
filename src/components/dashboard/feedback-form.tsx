@@ -1,8 +1,8 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -14,36 +14,27 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Employee, Feedback } from '@/lib/types';
 
 const formSchema = z.object({
-  customerName: z.string().min(2, 'Name is too short.'),
-  phone: z.string().regex(/^\d{10}$/, 'Please enter a valid 10-digit phone number.'),
-  deliveryDate: z.date({
-    required_error: 'A date of delivery is required.',
-  }),
-  calledBy: z.string({
-    required_error: 'Please select who made the call.',
-  }),
-  salesmanComment: z.string().min(10, 'Comment is too short.'),
+  deliveryDate: z.date(),
+  customerName: z.string().min(2, 'Name must be at least 2 characters'),
+  phone: z.string().regex(/^\d{10}$/, 'Phone number must be 10 digits'),
+  calledBy: z.string(),
+  comments: z.string().optional(),
+  status: z.enum(['Pending', 'Completed', 'Follow-up']),
 });
 
-type FeedbackFormProps = {
+interface FeedbackFormProps {
   employees: Employee[];
   onSubmit: (data: Omit<Feedback, 'id' | 'sNo'>) => void;
-};
+}
 
 export function FeedbackForm({ employees, onSubmit }: FeedbackFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
@@ -51,44 +42,19 @@ export function FeedbackForm({ employees, onSubmit }: FeedbackFormProps) {
     defaultValues: {
       customerName: '',
       phone: '',
-      salesmanComment: '',
+      comments: '',
+      status: 'Pending',
     },
   });
 
-  function handleFormSubmit(values: z.infer<typeof formSchema>) {
+  function handleSubmit(values: z.infer<typeof formSchema>) {
     onSubmit(values);
     form.reset();
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="customerName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Customer Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Doe" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number</FormLabel>
-              <FormControl>
-                <Input placeholder="9876543210" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="deliveryDate"
@@ -119,9 +85,6 @@ export function FeedbackForm({ employees, onSubmit }: FeedbackFormProps) {
                     mode="single"
                     selected={field.value}
                     onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date('1900-01-01')
-                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -132,10 +95,36 @@ export function FeedbackForm({ employees, onSubmit }: FeedbackFormProps) {
         />
         <FormField
           control={form.control}
+          name="customerName"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name of Customer</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. John Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g. 9876543210" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="calledBy"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Call Done By</FormLabel>
+              <FormLabel>Call conducted by</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
@@ -143,9 +132,9 @@ export function FeedbackForm({ employees, onSubmit }: FeedbackFormProps) {
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {employees.map((employee) => (
-                    <SelectItem key={employee.id} value={employee.name}>
-                      {employee.name}
+                  {employees.map(emp => (
+                    <SelectItem key={emp.id} value={emp.name}>
+                      {emp.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -156,20 +145,44 @@ export function FeedbackForm({ employees, onSubmit }: FeedbackFormProps) {
         />
         <FormField
           control={form.control}
-          name="salesmanComment"
+          name="comments"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Salesman Comments</FormLabel>
+              <FormLabel>Comments</FormLabel>
               <FormControl>
-                <Textarea placeholder="Customer feedback..." {...field} />
+                <Textarea
+                  placeholder="Notes from the call..."
+                  className="resize-none"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Submit Feedback
-        </Button>
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Set the status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Follow-up">Follow-up</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" className="w-full">Submit Feedback</Button>
       </form>
     </Form>
   );

@@ -1,4 +1,17 @@
 'use client';
+
+import { useState } from 'react';
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getPaginationRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  SortingState,
+  ColumnFiltersState,
+} from '@tanstack/react-table';
 import {
   Table,
   TableBody,
@@ -7,74 +20,142 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import type { Feedback } from '@/lib/types';
-import { Button } from '../ui/button';
-import { MessageSquare } from 'lucide-react';
-import { format } from 'date-fns';
 
-type DataTableProps = {
+interface DataTableProps {
   data: Feedback[];
-};
+}
+
+export const columns: ColumnDef<Feedback>[] = [
+  { accessorKey: 'sNo', header: 'S.No' },
+  {
+    accessorKey: 'deliveryDate',
+    header: 'Date of Delivery',
+    cell: ({ row }) => new Date(row.original.deliveryDate).toLocaleDateString(),
+  },
+  { accessorKey: 'customerName', header: 'Name of Customer' },
+  { accessorKey: 'phone', header: 'Phone' },
+  { accessorKey: 'calledBy', header: 'Called By' },
+  { accessorKey: 'comments', header: 'Comments' },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => {
+      const status = row.original.status;
+      return (
+        <Badge
+          className={cn({
+            'bg-yellow-200 text-yellow-900': status === 'Pending',
+            'bg-green-200 text-green-900': status === 'Completed',
+            'bg-blue-200 text-blue-900': status === 'Follow-up',
+          })}
+        >
+          {status}
+        </Badge>
+      );
+    },
+  },
+];
 
 export function DataTable({ data }: DataTableProps) {
-  
-  const handleSendWhatsApp = (phone: string, customerName: string) => {
-    const message = `Hello ${customerName}, thank you for choosing Lensbox. We hope you are enjoying your new lenses!`;
-    const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-  
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+    },
+  });
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="font-headline">Recent Feedback</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+      <div className="p-6">
+        <h3 className="font-headline text-2xl font-bold">Recent Feedback</h3>
+        <p className="text-sm text-muted-foreground">
+          Overview of the latest customer interactions.
+        </p>
+        <Input
+          placeholder="Filter by customer name..."
+          value={(table.getColumn('customerName')?.getFilterValue() as string) ?? ''}
+          onChange={event =>
+            table.getColumn('customerName')?.setFilterValue(event.target.value)
+          }
+          className="mt-4 max-w-sm"
+        />
+      </div>
+      <div className="border-t">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">S.No</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Called By</TableHead>
-              <TableHead>Delivery Date</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
+            {table.getHeaderGroups().map(headerGroup => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map(header => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
-            {data.length > 0 ? (
-              data.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>{item.sNo}</TableCell>
-                  <TableCell>
-                    <div className="font-medium">{item.customerName}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {item.phone}
-                    </div>
-                  </TableCell>
-                  <TableCell>{item.calledBy}</TableCell>
-                  <TableCell>{format(item.deliveryDate, 'PPP')}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleSendWhatsApp(item.phone, item.customerName)}
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map(row => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  No feedback yet.
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-      </CardContent>
-    </Card>
+      </div>
+      <div className="flex items-center justify-end space-x-2 p-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
   );
 }

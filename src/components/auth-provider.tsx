@@ -9,8 +9,10 @@ import React, {
 } from 'react';
 import { useRouter } from 'next/navigation';
 
-const ADMIN_EMAILS = ['preethikaeyecare@gmail.com', 'eyecarepreethika@gmail.com'];
-const MOCK_SALES_PEOPLE = ['sales1@example.com', 'sales2@example.com'];
+const CREDENTIALS = {
+  'preethikaeyecare@gmail.com': { password: 'admin@peclensboxmdu', role: 'admin' },
+  'eyecarepreethika@gmail.com': { password: 'staff@peclensboxmdu', role: 'user' },
+};
 
 interface AuthContextType {
   user: User | null;
@@ -42,23 +44,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(
     (email: string, password?: string) => {
-      // NOTE: Password is not currently used for mock login.
-      let loggedInUser: User | null = null;
       const normalizedEmail = email.toLowerCase();
-      
-      if (ADMIN_EMAILS.includes(normalizedEmail)) {
-        loggedInUser = { email: normalizedEmail, role: 'admin' };
-      } else if (MOCK_SALES_PEOPLE.includes(normalizedEmail)) {
-        loggedInUser = { email: normalizedEmail, role: 'user' };
-      } else {
-        // For demonstration, any other email logs in as a user
-        loggedInUser = { email: normalizedEmail, role: 'user' };
-      }
+      const userCredentials = CREDENTIALS[normalizedEmail];
 
-      if (loggedInUser) {
+      if (userCredentials && userCredentials.password === password) {
+        const loggedInUser: User = { email: normalizedEmail, role: userCredentials.role };
         setUser(loggedInUser);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
         router.push('/dashboard');
+      } else {
+        // Handle incorrect credentials
+        console.error('Invalid email or password');
       }
     },
     [router]
